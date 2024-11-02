@@ -1,9 +1,12 @@
 {
   "name": "anitimejs",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Một thư viện xử lý thời gian trong typescript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
