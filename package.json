@@ -1,6 +1,6 @@
 {
   "name": "anitimejs",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Một thư viện xử lý thời gian trong typescript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,8 +8,16 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fo-nhan/2ani-ui"
+  },
+  "homepage": "https://ui.ani2am.me/",
   "keywords": [
-    "timejs"
+    "timejs",
+    "date",
+    "anitimejs",
+    "ani-ui"
   ],
   "license": "ISC",
   "author": "Nguyễn Nhân",

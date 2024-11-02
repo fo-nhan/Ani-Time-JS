@@ -16,7 +16,25 @@ Tài liệu sẽ được cập nhật tại [trang tài liệu AnitimeJS](https
 
 ## Phát triển dự án cùng nhau
 
-Tham gia vào [GitHub repository của AnitimeJS](https://github.com/your-github-repo-here).
+Tham gia vào [GitHub repository của AnitimeJS](https://github.com/fo-nhan/Ani-Time-JS).
+
+## Một số hàm gợi ý
+
+- **format**: Dễ dàng format thời gian về định dạng mà bạn muốn.
+
+- **lang**: Cấu hình ngôn ngữ cho thời gian (Chỉ hỗ trợ ngôn ngữ mặc định).
+
+- **setTimeZone**: Định hình timeZone phù hợp với bạn.
+  
+- **arrangeTime**: Sắp xếp mảng thời gian.
+
+- **calculateWorkingDays**: Lấy ra mảng thời gian (Các ngày) làm việc hoặc nghỉ ngơi theo ý bạn.
+
+- **getMonthStartEndDates**: Ngày đầu tiên và ngày cuối tháng.
+  
+- **getDaysInMonth**: Mảng số ngày trong tháng của 1 thời gian xác định.
+  
+- **getCalendars**: Bạn muốn tạo lịch? Hàm này giúp lấy ra view số ngày cần hiển thị trong 1 tab lịch.
 
 ## Cài đặt AnitimeJS
 
