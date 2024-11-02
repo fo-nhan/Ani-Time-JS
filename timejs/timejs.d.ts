@@ -55,5 +55,5 @@ declare class Time {
     getTimeIntervals(step: number): string[];
     isValidDate(date: Date | string): boolean;
 }
-declare const timejs: (date?: Date | string, endDate?: Date | string) => Time;
-export default timejs;
+export declare const timejs: (date?: Date | string, endDate?: Date | string) => Time;
+export {};

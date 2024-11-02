@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-      "outDir": "./dist",
+      "outDir": "./timejs",
       "module": "commonjs",
       "target": "es6",
       "declaration": true,

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.timejs = void 0;
 const helper_1 = require("./helper");
 class Time {
     constructor(date, endDate) {
@@ -376,5 +377,5 @@ class Time {
     }
 }
 const timejs = (date, endDate) => new Time(date, endDate);
-exports.default = timejs;
-//# sourceMappingURL=index.js.map
+exports.timejs = timejs;
+//# sourceMappingURL=timejs.js.map
