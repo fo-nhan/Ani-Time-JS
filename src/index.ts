@@ -11,7 +11,7 @@ class Time {
   private date: Date;
   private endDate: Date | null;
   private static locale = "vi";
-  private static timezone: TimeZone = "America/New_York";
+  private static timezone: TimeZone = "Asia/Ho_Chi_Minh";
 
   constructor(date?: Date | string, endDate?: Date | string) {
     this.date = date ? this.parseDate(date) : new Date();

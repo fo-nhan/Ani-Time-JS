@@ -420,7 +420,7 @@ class Time {
     }
 }
 Time.locale = "vi";
-Time.timezone = "America/New_York";
+Time.timezone = "Asia/Ho_Chi_Minh";
 const anitimejs = (date, endDate) => new Time(date, endDate);
 exports.anitimejs = anitimejs;
 exports.anitimejsGlobalConfig = Time.setGlobalConfig;
