@@ -44,3 +44,10 @@ Tham gia vào [GitHub repository của AnitimeJS](https://github.com/fo-nhan/Ani
 $ yarn add anitimejs
 # hoặc
 $ npm install --save anitimejs
+```
+
+Và cách sử dụng
+
+```jsx
+import { anitimejs, anitimejsGlobalConfig } from "anitimejs";
+```

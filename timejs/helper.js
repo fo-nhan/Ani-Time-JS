@@ -416,4 +416,3 @@ exports.multilingual = {
         TS: "Seconde",
     },
 };
-//# sourceMappingURL=helper.js.map

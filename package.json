@@ -1,6 +1,6 @@
 {
   "name": "anitimejs",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Một thư viện xử lý thời gian trong typescript",
   "main": "timejs/index.js",
   "types": "timejs/index.d.ts",
