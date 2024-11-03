@@ -15,6 +15,7 @@ class Time {
 
   constructor(date?: Date | string, endDate?: Date | string) {
     this.date = date ? this.parseDate(date) : new Date();
+
     if (isNaN(this.date.getTime())) {
       throw new Error(
         "The date is not valid. Please provide a valid date string or Date object."
@@ -35,33 +36,32 @@ class Time {
     this.setTimeZone(Time.timezone);
   }
 
-  private parseDate(input: Date | string): Date {
-    if (input instanceof Date) {
-      return input;
-    }
+  private parseDate(date: Date | string): Date {
+    if (typeof date === "string") {
+      // Tách chuỗi theo định dạng ngày/tháng/năm
+      const parts = date.split(/[/ :]/); // Tách bằng '/' và ':'
 
-    const regex =
-      /(\d{2})[\/-](\d{2})[\/-](\d{4}) (\d{2}):(\d{2}):(\d{2})(\.\d{1,3})?/;
-    const match = input.match(regex);
+      // Kiểm tra số phần đã tách
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10); // Chỉ số 0 cho ngày
+        const month = parseInt(parts[1], 10) - 1; // Chỉ số 1 cho tháng (bắt đầu từ 0)
+        const year = parseInt(parts[2], 10); // Chỉ số 2 cho năm
 
-    if (match) {
-      const day = parseInt(match[1], 10);
-      const month = parseInt(match[2], 10) - 1; // Tháng bắt đầu từ 0 trong JavaScript
-      const year = parseInt(match[3], 10);
-      const hours = parseInt(match[4], 10);
-      const minutes = parseInt(match[5], 10);
-      const seconds = parseInt(match[6], 10);
-      const milliseconds = match[7] ? parseInt(match[7].slice(1), 10) : 0;
+        return new Date(year, month, day);
+      } else if (parts.length === 6) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Tháng trong Date bắt đầu từ 0
+        const year = parseInt(parts[2], 10);
+        const hours = parseInt(parts[3], 10);
+        const minutes = parseInt(parts[4], 10);
+        const seconds = parseInt(parts[5], 10);
 
-      return new Date(year, month, day, hours, minutes, seconds, milliseconds);
-    } else {
-      // Nếu không khớp với regex, chuyển đổi trực tiếp
-      const date = new Date(input);
-      if (isNaN(date.getTime())) {
-        throw new Error("Invalid date format.");
+        return new Date(year, month, day, hours, minutes, seconds);
+      } else {
+        return new Date(date); // Nếu không phải định dạng mong muốn, cố gắng tạo Date từ chuỗi
       }
-      return date;
     }
+    return date; // Nếu là đối tượng Date, trả về ngay
   }
 
   private formatDate(
@@ -332,38 +332,16 @@ class Time {
 
   public setTimeZone(timeZone: TimeZone): this {
     try {
-      const dateTimeFormat = new Intl.DateTimeFormat("en-US", {
-        timeZone,
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-      });
-
-      // Định dạng và lấy các phần
-      const parts: any = dateTimeFormat.formatToParts(new Date());
-
-      // Tìm kiếm giá trị tháng, ngày, năm, giờ, phút, giây
-      const month = parts.find((part: any) => part.type === "month").value;
-      const day = parts.find((part: any) => part.type === "day").value;
-      const year = parts.find((part: any) => part.type === "year").value;
-      const hour = parts.find((part: any) => part.type === "hour").value;
-      const minute = parts.find((part: any) => part.type === "minute").value;
-      const second = parts.find((part: any) => part.type === "second").value;
-
-      // Chuyển đổi các giá trị thành định dạng ISO 8601
-      this.date = new Date(
-        `${year}-${month}-${day}T${hour}:${minute}:${second}`
+      // Lấy thời gian hiện tại theo múi giờ mới
+      const localDate = new Date(
+        this.date.toLocaleString("en-US", { timeZone })
       );
 
-      Time.timezone = timeZone;
+      // Cập nhật `this.date` với thời gian mới
+      this.date.setTime(localDate.getTime());
 
-      if (isNaN(this.date.getTime())) {
-        this.date = new Date();
-      }
+      // Cập nhật biến static timezone
+      Time.timezone = timeZone;
     } catch (error) {
       throw new Error(`Invalid time zone: '${timeZone}'`);
     }

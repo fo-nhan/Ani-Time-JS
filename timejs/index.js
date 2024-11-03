@@ -19,30 +19,31 @@ class Time {
         }
         this.setTimeZone(Time.timezone);
     }
-    parseDate(input) {
-        if (input instanceof Date) {
-            return input;
-        }
-        const regex = /(\d{2})[\/-](\d{2})[\/-](\d{4}) (\d{2}):(\d{2}):(\d{2})(\.\d{1,3})?/;
-        const match = input.match(regex);
-        if (match) {
-            const day = parseInt(match[1], 10);
-            const month = parseInt(match[2], 10) - 1; // Tháng bắt đầu từ 0 trong JavaScript
-            const year = parseInt(match[3], 10);
-            const hours = parseInt(match[4], 10);
-            const minutes = parseInt(match[5], 10);
-            const seconds = parseInt(match[6], 10);
-            const milliseconds = match[7] ? parseInt(match[7].slice(1), 10) : 0;
-            return new Date(year, month, day, hours, minutes, seconds, milliseconds);
-        }
-        else {
-            // Nếu không khớp với regex, chuyển đổi trực tiếp
-            const date = new Date(input);
-            if (isNaN(date.getTime())) {
-                throw new Error("Invalid date format.");
+    parseDate(date) {
+        if (typeof date === "string") {
+            // Tách chuỗi theo định dạng ngày/tháng/năm
+            const parts = date.split(/[/ :]/); // Tách bằng '/' và ':'
+            // Kiểm tra số phần đã tách
+            if (parts.length === 3) {
+                const day = parseInt(parts[0], 10); // Chỉ số 0 cho ngày
+                const month = parseInt(parts[1], 10) - 1; // Chỉ số 1 cho tháng (bắt đầu từ 0)
+                const year = parseInt(parts[2], 10); // Chỉ số 2 cho năm
+                return new Date(year, month, day);
             }
-            return date;
+            else if (parts.length === 6) {
+                const day = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1; // Tháng trong Date bắt đầu từ 0
+                const year = parseInt(parts[2], 10);
+                const hours = parseInt(parts[3], 10);
+                const minutes = parseInt(parts[4], 10);
+                const seconds = parseInt(parts[5], 10);
+                return new Date(year, month, day, hours, minutes, seconds);
+            }
+            else {
+                return new Date(date); // Nếu không phải định dạng mong muốn, cố gắng tạo Date từ chuỗi
+            }
         }
+        return date; // Nếu là đối tượng Date, trả về ngay
     }
     formatDate(format, formatLanguage) {
         let newFormat = format;
@@ -241,31 +242,12 @@ class Time {
     }
     setTimeZone(timeZone) {
         try {
-            const dateTimeFormat = new Intl.DateTimeFormat("en-US", {
-                timeZone,
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-                hour12: false,
-            });
-            // Định dạng và lấy các phần
-            const parts = dateTimeFormat.formatToParts(new Date());
-            // Tìm kiếm giá trị tháng, ngày, năm, giờ, phút, giây
-            const month = parts.find((part) => part.type === "month").value;
-            const day = parts.find((part) => part.type === "day").value;
-            const year = parts.find((part) => part.type === "year").value;
-            const hour = parts.find((part) => part.type === "hour").value;
-            const minute = parts.find((part) => part.type === "minute").value;
-            const second = parts.find((part) => part.type === "second").value;
-            // Chuyển đổi các giá trị thành định dạng ISO 8601
-            this.date = new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}`);
+            // Lấy thời gian hiện tại theo múi giờ mới
+            const localDate = new Date(this.date.toLocaleString("en-US", { timeZone }));
+            // Cập nhật `this.date` với thời gian mới
+            this.date.setTime(localDate.getTime());
+            // Cập nhật biến static timezone
             Time.timezone = timeZone;
-            if (isNaN(this.date.getTime())) {
-                this.date = new Date();
-            }
         }
         catch (error) {
             throw new Error(`Invalid time zone: '${timeZone}'`);
