@@ -303,6 +303,12 @@ class Time {
   }
 
   public toString(): string {
+    return this.format("DD/MM/YYYY HH:mm:ss");
+  }
+  public toLocaleDateString(): string {
+    return this.format("DD/MM/YYYY");
+  }
+  public toLocaleTimeString(): string {
     return this.format("DD/MM/YYYY HH:mm:ss.SSS");
   }
 
@@ -328,6 +334,137 @@ class Time {
 
   public getSeconds(): number {
     return this.date.getSeconds();
+  }
+
+  public getTime(): number {
+    return this.date.getTime();
+  }
+
+  public getYears(start: number = 0, end: number = 0): number[] {
+    // Lấy năm hiện tại từ `this.date`
+    const currentYear = this.date.getFullYear();
+
+    // Xác định năm bắt đầu và năm kết thúc dựa trên start và end
+    const startYear = currentYear - start;
+    const endYear = currentYear + end;
+
+    // Tạo mảng chứa các năm trong khoảng thời gian từ startYear đến endYear
+    const years: number[] = [];
+    for (let year = startYear; year <= endYear; year++) {
+      years.push(year);
+    }
+
+    return years;
+  }
+
+  public getWeek(): Date[] {
+    const currentDayIndex = this.date.getDay(); // Lấy chỉ số của ngày hiện tại trong tuần
+    const startOfWeek = new Date(this.date); // Tạo một bản sao của `this.date`
+
+    // Điều chỉnh `startOfWeek` để trỏ đến Chủ Nhật của tuần hiện tại
+    startOfWeek.setDate(this.date.getDate() - currentDayIndex);
+
+    // Tạo mảng chứa các ngày trong tuần
+    const weekDays: Date[] = [];
+    for (let i = 0; i < 7; i++) {
+      // Đẩy từng ngày vào mảng, từ Chủ Nhật đến Thứ Bảy
+      const day = new Date(startOfWeek);
+      day.setDate(startOfWeek.getDate() + i);
+      weekDays.push(day);
+    }
+
+    return weekDays;
+  }
+
+  public getDayInWeek(): number {
+    return this.date.getDay();
+  }
+
+  public getTimeZone(): TimeZone {
+    return Time.timezone;
+  }
+
+  public getLocale(): string {
+    return Time.locale;
+  }
+
+  public getPreviousDay(): Date {
+    const previousDay = new Date(this.date); // Tạo một bản sao của `this.date`
+    previousDay.setDate(this.date.getDate() - 1); // Lùi ngày xuống 1
+    return previousDay;
+  }
+
+  public getNextDay(): Date {
+    const nextDay = new Date(this.date); // Tạo một bản sao của `this.date`
+    nextDay.setDate(this.date.getDate() + 1); // Tăng ngày lên 1
+    return nextDay;
+  }
+
+  public getPreviousYear(): Date {
+    const previousYear = new Date(this.date);
+    previousYear.setFullYear(this.date.getFullYear() - 1); // Lùi năm xuống 1
+    return previousYear;
+  }
+
+  public getNextYear(): Date {
+    const nextYear = new Date(this.date);
+    nextYear.setFullYear(this.date.getFullYear() + 1); // Tăng năm lên 1
+    return nextYear;
+  }
+
+  public getPreviousMonth(): Date {
+    const previousMonth = new Date(this.date);
+    previousMonth.setMonth(this.date.getMonth() - 1); // Lùi tháng xuống 1
+    return previousMonth;
+  }
+
+  public getNextMonth(): Date {
+    const nextMonth = new Date(this.date);
+    nextMonth.setMonth(this.date.getMonth() + 1); // Tăng tháng lên 1
+    return nextMonth;
+  }
+
+  public getWeekOfYear(): number {
+    // Tạo bản sao của `this.date` để đảm bảo không thay đổi giá trị gốc
+    const currentDate = new Date(this.date);
+
+    // Đặt ngày về thứ Hai của tuần hiện tại
+    currentDate.setHours(0, 0, 0, 0);
+    currentDate.setDate(
+      currentDate.getDate() + 3 - ((currentDate.getDay() + 6) % 7)
+    );
+
+    // Tính số ngày từ ngày 1 tháng 1
+    const firstOfYear = new Date(currentDate.getFullYear(), 0, 1);
+    const daysSinceFirstOfYear = Math.floor(
+      (currentDate.getTime() - firstOfYear.getTime()) / (24 * 60 * 60 * 1000)
+    );
+
+    // Tính tuần trong năm
+    const weekOfYear = Math.ceil((daysSinceFirstOfYear + 1) / 7);
+
+    return weekOfYear;
+  }
+
+  public getDaysOfWeekInYear(dayOfWeek: number): Date[] {
+    const year = this.date.getFullYear(); // Lấy năm từ this.date
+    const dates: Date[] = [];
+
+    // Khởi tạo ngày đầu tiên của năm
+    let currentDate = new Date(year, 0, 1);
+
+    // Tìm ngày đầu tiên trong năm khớp với `dayOfWeek`
+    while (currentDate.getDay() !== dayOfWeek) {
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Thêm tất cả các ngày trong năm trùng với `dayOfWeek`
+    while (currentDate.getFullYear() === year) {
+      dates.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 7); // Tăng lên 7 ngày để đến tuần tiếp theo
+    }
+
+    return dates;
   }
 
   public setTimeZone(timeZone: TimeZone): this {
