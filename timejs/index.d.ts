@@ -59,6 +59,7 @@ declare class Time {
     add(value: number, unit: "days" | "hours" | "minutes" | "seconds" | "months" | "years"): this;
     subtract(value: number, unit: "days" | "hours" | "minutes" | "seconds" | "months" | "years"): this;
     arrangeTime(arrayDate: (Date | string)[], order?: "asc" | "desc"): this;
+    arrangeTimeObject(arrayDate: any[], order?: "asc" | "desc", keyPath?: string): this;
     calculateWorkingDays(week: number[], // Mảng chứa các thứ trong tuần muốn loại bỏ (0: Chủ nhật, 1: Thứ 2, ..., 6: Thứ 7)
     holidays: (Date | string)[]): {
         workingDays: Date[];

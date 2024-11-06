@@ -543,6 +543,52 @@ class Time {
     return this;
   }
 
+  public arrangeTimeObject(
+    arrayDate: any[],
+    order: "asc" | "desc" = "asc",
+    keyPath: string = "date"
+  ): this {
+    // Hàm phụ để lấy giá trị ngày từ đối tượng theo `keyPath`
+    const getDateValue = (obj: any): Date => {
+      // Tách keyPath thành các phần (hỗ trợ các trường hợp lồng nhau như `time.date`)
+      const keys = keyPath.split(".");
+      // Duyệt qua từng phần để lấy giá trị cuối cùng
+      let value = obj;
+      for (const key of keys) {
+        value = value[key];
+        if (value === undefined) {
+          throw new Error(`Không tìm thấy đường dẫn '${keyPath}' trong đối tượng.`);
+        }
+      }
+      return new Date(value);
+    };
+
+    // Chuyển đổi tất cả các giá trị thành đối tượng Date
+    const dates = arrayDate.map((obj) => {
+      const date = getDateValue(obj);
+      if (isNaN(date.getTime())) {
+        throw new Error("Một trong các ngày không hợp lệ.");
+      }
+      return { ...obj, _parsedDate: date }; // Lưu ngày đã phân tích để sắp xếp
+    });
+
+    // Sắp xếp mảng theo thứ tự tăng dần hoặc giảm dần
+    dates.sort((a, b) =>
+      order === "asc"
+        ? a._parsedDate.getTime() - b._parsedDate.getTime()
+        : b._parsedDate.getTime() - a._parsedDate.getTime()
+    );
+
+    // Xóa trường `_parsedDate` sau khi sắp xếp
+    dates.forEach((obj) => delete obj._parsedDate);
+
+    // Gán lại mảng đã sắp xếp
+    arrayDate.length = 0;
+    arrayDate.push(...dates);
+
+    return this;
+  }
+
   public calculateWorkingDays(
     week: number[], // Mảng chứa các thứ trong tuần muốn loại bỏ (0: Chủ nhật, 1: Thứ 2, ..., 6: Thứ 7)
     holidays: (Date | string)[] // Mảng chứa các ngày lễ muốn loại bỏ
