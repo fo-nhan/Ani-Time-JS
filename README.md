@@ -3,12 +3,9 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
 
 - **Lightweight**: AnitimeJS là một thư viện thời gian nhỏ gọn giúp bạn xử lý các tác vụ liên quan đến thời gian một cách dễ dàng.
-  
 - **Flexible & composable**: Các hàm trong AnitimeJS có thể được kết hợp với nhau để thực hiện các tác vụ phức tạp hơn.
 
 - **Accessible**: AnitimeJS tuân thủ các tiêu chuẩn mã nguồn mở và dễ dàng sử dụng trong bất kỳ dự án nào.
-
-- **Dark Mode Compatible**: Tất cả các chức năng của AnitimeJS đều hỗ trợ chế độ tối.
 
 ## Tìm kiếm tài liệu?
 
@@ -25,17 +22,13 @@ Tham gia vào [GitHub repository của AnitimeJS](https://github.com/fo-nhan/Ani
 - **lang**: Cấu hình ngôn ngữ cho thời gian (Chỉ hỗ trợ ngôn ngữ mặc định).
 
 - **setTimeZone**: Định hình timeZone phù hợp với bạn.
-  
 - **arrangeTime**: Sắp xếp mảng thời gian.
 
 - **calculateWorkingDays**: Lấy ra mảng thời gian (Các ngày) làm việc hoặc nghỉ ngơi theo ý bạn.
 
 - **getMonthStartEndDates**: Ngày đầu tiên và ngày cuối tháng.
-  
 - **getDaysInMonth**: Mảng số ngày trong tháng của 1 thời gian xác định.
-  
 - **getCalendars**: Bạn muốn tạo lịch? Hàm này giúp lấy ra view số ngày cần hiển thị trong 1 tab lịch.
-  
 - **useTimer**: Một hook đếm thời gian có thể tuy chỉnh.
 
 ## Cài đặt AnitimeJS

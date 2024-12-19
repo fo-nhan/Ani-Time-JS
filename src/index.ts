@@ -6,7 +6,7 @@ import {
   Language,
   TimeZone,
 } from "./type";
-import { useTimerInterval, UseTimerOptions } from "./useTimer";
+import useTimer from "./useTimer";
 
 class Time {
   private date: Date;
@@ -558,7 +558,9 @@ class Time {
       for (const key of keys) {
         value = value[key];
         if (value === undefined) {
-          throw new Error(`Không tìm thấy đường dẫn '${keyPath}' trong đối tượng.`);
+          throw new Error(
+            `Không tìm thấy đường dẫn '${keyPath}' trong đối tượng.`
+          );
         }
       }
       return new Date(value);
@@ -780,4 +782,4 @@ export const anitimejs = (date?: Date | string, endDate?: Date | string) =>
 
 export const anitimejsGlobalConfig = Time.setGlobalConfig;
 
-export const useTimer = (props: UseTimerOptions) =>  useTimerInterval(props);
+export { useTimer };

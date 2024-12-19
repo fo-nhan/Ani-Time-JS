@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.useTimerInterval = void 0;
 const react_1 = require("react");
-const useTimerInterval = ({ initialStartTime } = {}) => {
+const useTimer = ({ initialStartTime, } = {}) => {
     const [startTime, setStartTime] = (0, react_1.useState)(initialStartTime || Date.now());
     const [elapsedTime, setElapsedTime] = (0, react_1.useState)(0); // Thời gian từ 0
     const [offsetTime, setOffsetTime] = (0, react_1.useState)(0); // Thời gian từ startTime
@@ -55,6 +54,14 @@ const useTimerInterval = ({ initialStartTime } = {}) => {
             }
         };
     }, []);
-    return { elapsedTime, offsetTime, timeDifference, start, stop, reset, setTime };
+    return {
+        elapsedTime,
+        offsetTime,
+        timeDifference,
+        start,
+        stop,
+        reset,
+        setTime,
+    };
 };
-exports.useTimerInterval = useTimerInterval;
+exports.default = useTimer;

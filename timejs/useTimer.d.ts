@@ -10,4 +10,5 @@ export interface UseTimerReturn {
     reset: () => void;
     setTime: (newTime: number) => void;
 }
-export declare const useTimerInterval: ({ initialStartTime }?: UseTimerOptions) => UseTimerReturn;
+declare const useTimer: ({ initialStartTime, }?: UseTimerOptions) => UseTimerReturn;
+export default useTimer;

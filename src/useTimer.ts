@@ -4,7 +4,7 @@ export interface UseTimerOptions {
   initialStartTime?: number; // Thời gian bắt đầu ban đầu (timestamp)
 }
 
-export  interface UseTimerReturn {
+export interface UseTimerReturn {
   elapsedTime: number; // Thời gian từ 0
   offsetTime: number; // Thời gian từ thời gian bắt đầu
   timeDifference: number; // Chênh lệch giữa thời gian hiện tại và startTime
@@ -14,8 +14,12 @@ export  interface UseTimerReturn {
   setTime: (newTime: number) => void; // Cập nhật thời gian bắt đầu
 }
 
-export const useTimerInterval = ({ initialStartTime }: UseTimerOptions = {}): UseTimerReturn => {
-  const [startTime, setStartTime] = useState<number>(initialStartTime || Date.now());
+const useTimer = ({
+  initialStartTime,
+}: UseTimerOptions = {}): UseTimerReturn => {
+  const [startTime, setStartTime] = useState<number>(
+    initialStartTime || Date.now()
+  );
   const [elapsedTime, setElapsedTime] = useState<number>(0); // Thời gian từ 0
   const [offsetTime, setOffsetTime] = useState<number>(0); // Thời gian từ startTime
   const [timeDifference, setTimeDifference] = useState<number>(0); // Chênh lệch với thời gian thực
@@ -76,5 +80,15 @@ export const useTimerInterval = ({ initialStartTime }: UseTimerOptions = {}): Us
     };
   }, []);
 
-  return { elapsedTime, offsetTime, timeDifference, start, stop, reset, setTime };
+  return {
+    elapsedTime,
+    offsetTime,
+    timeDifference,
+    start,
+    stop,
+    reset,
+    setTime,
+  };
 };
+
+export default useTimer;
