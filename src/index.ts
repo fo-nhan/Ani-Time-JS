@@ -777,6 +777,39 @@ class Time {
   }
 }
 
+export const numberOfTime = (
+  seconds: number,
+  format: "hh:mm:ss" | "mm:ss" | "ss" = "mm:ss"
+): string => {
+  try {
+    if (seconds < 0) {
+      throw new Error("Seconds must be a non-negative number.");
+    }
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+
+    const formattedHours = hours.toString().padStart(2, "0");
+    const formattedMinutes = minutes.toString().padStart(2, "0");
+    const formattedSeconds = remainingSeconds.toString().padStart(2, "0");
+
+    switch (format) {
+      case "hh:mm:ss":
+        return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+      case "mm:ss":
+        return `${formattedMinutes}:${formattedSeconds}`;
+      case "ss":
+        return `${seconds}`;
+      default:
+        throw new Error("Invalid format. Use 'hh:mm:ss', 'mm:ss', or 'ss'.");
+    }
+  } catch (error: any) {
+    console.error(error?.message || "ERROR");
+    return "Invalid input";
+  }
+};
+
 export const anitimejs = (date?: Date | string, endDate?: Date | string) =>
   new Time(date, endDate);
 

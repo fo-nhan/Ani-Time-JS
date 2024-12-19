@@ -83,6 +83,7 @@ declare class Time {
         timezone?: TimeZone;
     }): void;
 }
+export declare const numberOfTime: (seconds: number, format?: "hh:mm:ss" | "mm:ss" | "ss") => string;
 export declare const anitimejs: (date?: Date | string, endDate?: Date | string) => Time;
 export declare const anitimejsGlobalConfig: typeof Time.setGlobalConfig;
 export { useTimer };

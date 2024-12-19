@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.useTimer = exports.anitimejsGlobalConfig = exports.anitimejs = void 0;
+exports.useTimer = exports.anitimejsGlobalConfig = exports.anitimejs = exports.numberOfTime = void 0;
 const helper_1 = require("./helper");
 const useTimer_1 = require("./useTimer");
 exports.useTimer = useTimer_1.default;
@@ -562,6 +562,34 @@ class Time {
 }
 Time.locale = "vi";
 Time.timezone = "Asia/Ho_Chi_Minh";
+const numberOfTime = (seconds, format = "mm:ss") => {
+    try {
+        if (seconds < 0) {
+            throw new Error("Seconds must be a non-negative number.");
+        }
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const remainingSeconds = seconds % 60;
+        const formattedHours = hours.toString().padStart(2, "0");
+        const formattedMinutes = minutes.toString().padStart(2, "0");
+        const formattedSeconds = remainingSeconds.toString().padStart(2, "0");
+        switch (format) {
+            case "hh:mm:ss":
+                return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
+            case "mm:ss":
+                return `${formattedMinutes}:${formattedSeconds}`;
+            case "ss":
+                return `${seconds}`;
+            default:
+                throw new Error("Invalid format. Use 'hh:mm:ss', 'mm:ss', or 'ss'.");
+        }
+    }
+    catch (error) {
+        console.error((error === null || error === void 0 ? void 0 : error.message) || "ERROR");
+        return "Invalid input";
+    }
+};
+exports.numberOfTime = numberOfTime;
 const anitimejs = (date, endDate) => new Time(date, endDate);
 exports.anitimejs = anitimejs;
 exports.anitimejsGlobalConfig = Time.setGlobalConfig;
