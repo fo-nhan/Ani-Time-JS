@@ -1,6 +1,6 @@
 {
   "name": "anitimejs",
-  "version": "1.1.2",
+  "version": "1.1.4",
   "description": "Một thư viện xử lý thời gian trong typescript",
   "main": "timejs/index.js",
   "types": "timejs/index.d.ts",
@@ -27,7 +27,11 @@
   "author": "Nguyễn Nhân",
   "devDependencies": {
     "@types/node": "^22.8.6",
+    "@types/react": "^19.0.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "react": "^19.0.0"
   }
 }

@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.anitimejsGlobalConfig = exports.anitimejs = void 0;
+exports.useTimer = exports.anitimejsGlobalConfig = exports.anitimejs = void 0;
 const helper_1 = require("./helper");
+const useTimer_1 = require("./useTimer");
 class Time {
     constructor(date, endDate) {
         this.date = date ? this.parseDate(date) : new Date();
@@ -563,3 +564,5 @@ Time.timezone = "Asia/Ho_Chi_Minh";
 const anitimejs = (date, endDate) => new Time(date, endDate);
 exports.anitimejs = anitimejs;
 exports.anitimejsGlobalConfig = Time.setGlobalConfig;
+const useTimer = (props) => (0, useTimer_1.useTimerInterval)(props);
+exports.useTimer = useTimer;

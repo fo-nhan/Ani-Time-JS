@@ -6,6 +6,7 @@ import {
   Language,
   TimeZone,
 } from "./type";
+import { useTimerInterval, UseTimerOptions } from "./useTimer";
 
 class Time {
   private date: Date;
@@ -778,3 +779,5 @@ export const anitimejs = (date?: Date | string, endDate?: Date | string) =>
   new Time(date, endDate);
 
 export const anitimejsGlobalConfig = Time.setGlobalConfig;
+
+export const useTimer = (props: UseTimerOptions) =>  useTimerInterval(props);

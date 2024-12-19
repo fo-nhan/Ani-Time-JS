@@ -35,6 +35,8 @@ Tham gia vào [GitHub repository của AnitimeJS](https://github.com/fo-nhan/Ani
 - **getDaysInMonth**: Mảng số ngày trong tháng của 1 thời gian xác định.
   
 - **getCalendars**: Bạn muốn tạo lịch? Hàm này giúp lấy ra view số ngày cần hiển thị trong 1 tab lịch.
+  
+- **useTimer**: Một hook đếm thời gian có thể tuy chỉnh.
 
 ## Cài đặt AnitimeJS
 
@@ -49,5 +51,5 @@ $ npm install --save anitimejs
 Và cách sử dụng
 
 ```jsx
-import { anitimejs, anitimejsGlobalConfig } from "anitimejs";
+import { anitimejs, anitimejsGlobalConfig, useTimer } from "anitimejs";
 ```

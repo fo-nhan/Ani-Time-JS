@@ -1,4 +1,5 @@
 import { DateLocalizationConfig, FormatDateOptions, Language, TimeZone } from "./type";
+import { UseTimerOptions } from "./useTimer";
 declare class Time {
     private date;
     private endDate;
@@ -84,4 +85,5 @@ declare class Time {
 }
 export declare const anitimejs: (date?: Date | string, endDate?: Date | string) => Time;
 export declare const anitimejsGlobalConfig: typeof Time.setGlobalConfig;
+export declare const useTimer: (props: UseTimerOptions) => import("./useTimer").UseTimerReturn;
 export {};
