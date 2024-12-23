@@ -29,7 +29,12 @@ Tham gia vào [GitHub repository của AnitimeJS](https://github.com/fo-nhan/Ani
 - **getMonthStartEndDates**: Ngày đầu tiên và ngày cuối tháng.
 - **getDaysInMonth**: Mảng số ngày trong tháng của 1 thời gian xác định.
 - **getCalendars**: Bạn muốn tạo lịch? Hàm này giúp lấy ra view số ngày cần hiển thị trong 1 tab lịch.
+
 - **useTimer**: Một hook đếm thời gian có thể tuy chỉnh.
+- **random**: Random theo quy tắc mà bạn mong muốn.
+- **number**: Xử lý số theo ý của bạn, convert số hoặc chuyển đổi nó thành chữ (Hiện tại chỉ hiển thị tiếng Việt).
+- **sootArray**: Sắp xếp mảng, thậm chí có thể sắp xếp mảng object ở bất kỳ độ sâu nào.
+- **animate**: Một hàm xử lý hiệu ứng thú vị.
 
 ## Cài đặt AnitimeJS
 

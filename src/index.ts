@@ -7,6 +7,10 @@ import {
   TimeZone,
 } from "./type";
 import useTimer from "./useTimer";
+import { animate } from "./animate";
+import { number } from "./number";
+import { random } from "./random";
+import { sortArray } from "./sort";
 
 class Time {
   private date: Date;
@@ -815,4 +819,4 @@ export const anitimejs = (date?: Date | string, endDate?: Date | string) =>
 
 export const anitimejsGlobalConfig = Time.setGlobalConfig;
 
-export { useTimer };
+export { useTimer, animate, number, random, sortArray };
