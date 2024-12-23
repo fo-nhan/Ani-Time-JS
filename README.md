@@ -32,7 +32,7 @@ Tham gia vào [GitHub repository của AnitimeJS](https://github.com/fo-nhan/Ani
 
 - **useTimer**: Một hook đếm thời gian có thể tuy chỉnh.
 - **random**: Random theo quy tắc mà bạn mong muốn.
-- **number**: Xử lý số theo ý của bạn, convert số hoặc chuyển đổi nó thành chữ (Hiện tại chỉ hiển thị tiếng Việt).
+- **numbers**: Xử lý số theo ý của bạn, convert số hoặc chuyển đổi nó thành chữ (Hiện tại chỉ hiển thị tiếng Việt).
 - **sootArray**: Sắp xếp mảng, thậm chí có thể sắp xếp mảng object ở bất kỳ độ sâu nào.
 - **animate**: Một hàm xử lý hiệu ứng thú vị.
 

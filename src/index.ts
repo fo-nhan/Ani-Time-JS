@@ -8,7 +8,7 @@ import {
 } from "./type";
 import useTimer from "./useTimer";
 import { animate } from "./animate";
-import { number } from "./number";
+import { numbers } from "./number";
 import { random } from "./random";
 import { sortArray } from "./sort";
 
@@ -819,4 +819,4 @@ export const anitimejs = (date?: Date | string, endDate?: Date | string) =>
 
 export const anitimejsGlobalConfig = Time.setGlobalConfig;
 
-export { useTimer, animate, number, random, sortArray };
+export { useTimer, animate, numbers, random, sortArray };

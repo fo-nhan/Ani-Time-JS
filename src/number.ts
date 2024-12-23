@@ -1,6 +1,6 @@
 export type separatorType = "." | "," | "/" | ":" | "-" | "_" | "+";
 
-export const number = (
+export const numbers = (
   number: number,
   options: {
     separator?: separatorType;

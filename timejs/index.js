@@ -1,13 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sortArray = exports.random = exports.number = exports.animate = exports.useTimer = exports.anitimejsGlobalConfig = exports.anitimejs = exports.numberOfTime = void 0;
+exports.sortArray = exports.random = exports.numbers = exports.animate = exports.useTimer = exports.anitimejsGlobalConfig = exports.anitimejs = exports.numberOfTime = void 0;
 const helper_1 = require("./helper");
 const useTimer_1 = require("./useTimer");
 exports.useTimer = useTimer_1.default;
 const animate_1 = require("./animate");
 Object.defineProperty(exports, "animate", { enumerable: true, get: function () { return animate_1.animate; } });
 const number_1 = require("./number");
-Object.defineProperty(exports, "number", { enumerable: true, get: function () { return number_1.number; } });
+Object.defineProperty(exports, "numbers", { enumerable: true, get: function () { return number_1.numbers; } });
 const random_1 = require("./random");
 Object.defineProperty(exports, "random", { enumerable: true, get: function () { return random_1.random; } });
 const sort_1 = require("./sort");
