@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.easingFunctions = exports.effects = exports.createTransform = exports.sequence = exports.physics = exports.spring = exports.stagger = exports.timeline = exports.sortArray = exports.random = exports.numbers = exports.animate = exports.useTimer = exports.anitimejsGlobalConfig = exports.anitimejs = exports.numberOfTime = void 0;
+exports.isValidSlug = exports.getSlugPart = exports.createUniqueSlug = exports.createSlug = exports.easingFunctions = exports.effects = exports.createTransform = exports.sequence = exports.physics = exports.spring = exports.stagger = exports.timeline = exports.sortArray = exports.random = exports.numbers = exports.animate = exports.useTimer = exports.anitimejsGlobalConfig = exports.anitimejs = exports.numberOfTime = void 0;
 const helper_1 = require("./helper");
 const useTimer_1 = require("./useTimer");
 exports.useTimer = useTimer_1.default;
@@ -20,6 +20,11 @@ const random_1 = require("./random");
 Object.defineProperty(exports, "random", { enumerable: true, get: function () { return random_1.random; } });
 const sort_1 = require("./sort");
 Object.defineProperty(exports, "sortArray", { enumerable: true, get: function () { return sort_1.sortArray; } });
+const slug_1 = require("./slug");
+Object.defineProperty(exports, "createSlug", { enumerable: true, get: function () { return slug_1.createSlug; } });
+Object.defineProperty(exports, "createUniqueSlug", { enumerable: true, get: function () { return slug_1.createUniqueSlug; } });
+Object.defineProperty(exports, "getSlugPart", { enumerable: true, get: function () { return slug_1.getSlugPart; } });
+Object.defineProperty(exports, "isValidSlug", { enumerable: true, get: function () { return slug_1.isValidSlug; } });
 class Time {
     constructor(date, endDate) {
         this.date = date ? this.parseDate(date) : new Date();

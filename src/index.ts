@@ -21,6 +21,7 @@ import {
 import { numbers } from "./number";
 import { random } from "./random";
 import { sortArray } from "./sort";
+import { createSlug, createUniqueSlug, getSlugPart, isValidSlug } from "./slug";
 
 class Time {
   private date: Date;
@@ -898,4 +899,8 @@ export {
   createTransform,
   effects,
   easingFunctions,
+  createSlug,
+  createUniqueSlug,
+  getSlugPart,
+  isValidSlug
 };

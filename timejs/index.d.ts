@@ -4,6 +4,7 @@ import { animate, timeline, stagger, spring, physics, sequence, createTransform,
 import { numbers } from "./number";
 import { random } from "./random";
 import { sortArray } from "./sort";
+import { createSlug, createUniqueSlug, getSlugPart, isValidSlug } from "./slug";
 declare class Time {
     private date;
     private endDate;
@@ -90,4 +91,4 @@ declare class Time {
 export declare const numberOfTime: (seconds: number, format?: "hh:mm:ss" | "mm:ss" | "ss") => string;
 export declare const anitimejs: (date?: Date | string, endDate?: Date | string) => Time;
 export declare const anitimejsGlobalConfig: typeof Time.setGlobalConfig;
-export { useTimer, animate, numbers, random, sortArray, timeline, stagger, spring, physics, sequence, createTransform, effects, easingFunctions, };
+export { useTimer, animate, numbers, random, sortArray, timeline, stagger, spring, physics, sequence, createTransform, effects, easingFunctions, createSlug, createUniqueSlug, getSlugPart, isValidSlug };

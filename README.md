@@ -1145,6 +1145,192 @@ export default {
 </script>
 ```
 
+### Slug Utils
+
+Bộ công cụ xử lý và tạo slug cho các ứng dụng web, đặc biệt hỗ trợ tốt cho nội dung tiếng Việt.
+
+#### Tính năng chính
+
+- 🔄 **Tạo slug từ chuỗi bất kỳ**: Chuyển đổi tiêu đề, câu văn thành định dạng URL thân thiện
+- 🇻🇳 **Hỗ trợ tiếng Việt**: Tự động loại bỏ dấu, xử lý ký tự đặc biệt tiếng Việt
+- ✅ **Kiểm tra tính hợp lệ**: Xác minh định dạng slug theo các tiêu chuẩn tùy biến
+- 📋 **Tạo slug độc nhất**: Thêm hậu tố số khi cần để đảm bảo độc nhất
+- 🧩 **Phân tích slug**: Trích xuất các thành phần từ chuỗi slug phức tạp
+
+#### API
+
+##### createSlug
+
+Tạo slug từ chuỗi với nhiều tùy chọn cấu hình.
+
+```typescript
+function createSlug(input: string, options?: SlugOptions): string;
+
+interface SlugOptions {
+  separator?: string;          // Ký tự phân cách (mặc định: "-")
+  lowercase?: boolean;         // Chuyển đổi sang chữ thường (mặc định: true)
+  removeAccents?: boolean;     // Loại bỏ dấu tiếng Việt (mặc định: true)
+  maxLength?: number;          // Giới hạn độ dài (mặc định: 0 - không giới hạn)
+  removeNonAlphanumeric?: boolean; // Loại bỏ ký tự đặc biệt (mặc định: true)
+  replaceWhitespace?: boolean; // Thay khoảng trắng bằng dấu phân cách (mặc định: true)
+  customReplacements?: Record<string, string>; // Thay thế ký tự tùy chỉnh
+}
+```
+
+###### Ví dụ
+
+```javascript
+import { createSlug } from "anitimejs";
+
+// Tạo slug cơ bản
+createSlug("Hello World");
+// => "hello-world"
+
+// Xử lý tiếng Việt
+createSlug("Chào Thế Giới");
+// => "chao-the-gioi"
+
+// Tùy chỉnh cấu hình
+createSlug("Product Name (Version 2.0)", {
+  separator: "_",
+  maxLength: 20,
+  customReplacements: { "2.0": "2-0" }
+});
+// => "product_name_version"
+```
+
+##### isValidSlug
+
+Kiểm tra xem một chuỗi có phải là slug hợp lệ không.
+
+```typescript
+function isValidSlug(slug: string, pattern?: RegExp): boolean;
+```
+
+###### Ví dụ
+
+```javascript
+import { isValidSlug } from "anitimejs";
+
+// Kiểm tra với mẫu mặc định (chữ thường, số, dấu gạch ngang)
+isValidSlug("hello-world");         // => true
+isValidSlug("hello world");         // => false
+isValidSlug("HELLO-WORLD");         // => false
+
+// Kiểm tra với mẫu tùy chỉnh
+isValidSlug("product_123", /^[a-z0-9_]+$/);  // => true
+```
+
+##### createUniqueSlug
+
+Tạo slug độc nhất không trùng với các slug đã tồn tại.
+
+```typescript
+function createUniqueSlug(
+  input: string, 
+  existingSlugs?: string[], 
+  options?: SlugOptions
+): string;
+```
+
+###### Ví dụ
+
+```javascript
+import { createUniqueSlug } from "anitimejs";
+
+// Tạo slug độc nhất
+const existingSlugs = ["hello-world", "hello-world-1"];
+createUniqueSlug("Hello World", existingSlugs);
+// => "hello-world-2"
+
+// Với tùy chỉnh
+createUniqueSlug("Hello World", existingSlugs, { separator: "_" });
+// => "hello_world_1"
+```
+
+##### getSlugPart
+
+Trích xuất một phần cụ thể từ chuỗi slug.
+
+```typescript
+function getSlugPart(
+  slug: string, 
+  position?: 'first' | 'last' | number,
+  separator?: string
+): string;
+```
+
+###### Ví dụ
+
+```javascript
+import { getSlugPart } from "anitimejs";
+
+// Trích xuất phần cuối (mặc định)
+getSlugPart("blog/2023/post-title", 'last', '/');
+// => "post-title"
+
+// Trích xuất phần đầu
+getSlugPart("blog/2023/post-title", 'first', '/');
+// => "blog"
+
+// Trích xuất theo vị trí
+getSlugPart("blog/2023/post-title", 1, '/');
+// => "2023"
+```
+
+#### Ứng dụng thực tế
+
+##### SEO-friendly URLs
+
+```javascript
+// Tạo đường dẫn URL thân thiện với SEO từ tiêu đề bài viết
+const articleTitle = "10 Cách Học Tiếng Anh Hiệu Quả (Phiên bản 2025)";
+const slug = createSlug(articleTitle);
+// => "10-cach-hoc-tieng-anh-hieu-qua-phien-ban-2025"
+
+const articleUrl = `https://example.com/articles/${slug}`;
+// => "https://example.com/articles/10-cach-hoc-tieng-anh-hieu-qua-phien-ban-2025"
+```
+
+##### Hệ thống quản lý nội dung (CMS)
+
+```javascript
+// Tạo slug cho bài viết mới, đảm bảo độc nhất
+function createArticleSlug(title, existingArticles) {
+  const existingSlugs = existingArticles.map(article => article.slug);
+  return createUniqueSlug(title, existingSlugs);
+}
+
+const articles = [
+  { id: 1, title: "Bài viết đầu tiên", slug: "bai-viet-dau-tien" },
+  { id: 2, title: "Bài viết thứ hai", slug: "bai-viet-thu-hai" }
+];
+
+const newArticle = {
+  id: 3,
+  title: "Bài viết đầu tiên", // Trùng tiêu đề
+  slug: createArticleSlug("Bài viết đầu tiên", articles)
+};
+// => { id: 3, title: "Bài viết đầu tiên", slug: "bai-viet-dau-tien-1" }
+```
+
+##### Phân tích và xử lý đường dẫn
+
+```javascript
+// Xử lý đường dẫn phân cấp
+const fullPath = "blog/technology/javascript/new-features";
+
+// Trích xuất danh mục
+const category = getSlugPart(fullPath, 1, '/');  // => "technology"
+
+// Trích xuất chủ đề
+const topic = getSlugPart(fullPath, 2, '/');     // => "javascript"
+
+// Kiểm tra tính hợp lệ của URL
+const allParts = fullPath.split('/');
+const allValid = allParts.every(part => isValidSlug(part));
+```
+
 ## Đóng góp
 
 Tham gia vào [GitHub repository của AnitimeJS](https://github.com/fo-nhan/Ani-Time-JS) để đóng góp ý kiến, báo cáo lỗi hoặc yêu cầu tính năng mới.
