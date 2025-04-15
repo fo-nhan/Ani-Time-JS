@@ -1,11 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sortArray = exports.random = exports.numbers = exports.animate = exports.useTimer = exports.anitimejsGlobalConfig = exports.anitimejs = exports.numberOfTime = void 0;
+exports.easingFunctions = exports.effects = exports.createTransform = exports.sequence = exports.physics = exports.spring = exports.stagger = exports.timeline = exports.sortArray = exports.random = exports.numbers = exports.animate = exports.useTimer = exports.anitimejsGlobalConfig = exports.anitimejs = exports.numberOfTime = void 0;
 const helper_1 = require("./helper");
 const useTimer_1 = require("./useTimer");
 exports.useTimer = useTimer_1.default;
 const animate_1 = require("./animate");
 Object.defineProperty(exports, "animate", { enumerable: true, get: function () { return animate_1.animate; } });
+Object.defineProperty(exports, "timeline", { enumerable: true, get: function () { return animate_1.timeline; } });
+Object.defineProperty(exports, "stagger", { enumerable: true, get: function () { return animate_1.stagger; } });
+Object.defineProperty(exports, "spring", { enumerable: true, get: function () { return animate_1.spring; } });
+Object.defineProperty(exports, "physics", { enumerable: true, get: function () { return animate_1.physics; } });
+Object.defineProperty(exports, "sequence", { enumerable: true, get: function () { return animate_1.sequence; } });
+Object.defineProperty(exports, "createTransform", { enumerable: true, get: function () { return animate_1.createTransform; } });
+Object.defineProperty(exports, "effects", { enumerable: true, get: function () { return animate_1.effects; } });
+Object.defineProperty(exports, "easingFunctions", { enumerable: true, get: function () { return animate_1.easingFunctions; } });
 const number_1 = require("./number");
 Object.defineProperty(exports, "numbers", { enumerable: true, get: function () { return number_1.numbers; } });
 const random_1 = require("./random");
@@ -30,30 +38,73 @@ class Time {
         this.setTimeZone(Time.timezone);
     }
     parseDate(date) {
+        if (date instanceof Date) {
+            return new Date(date);
+        }
         if (typeof date === "string") {
-            // Tách chuỗi theo định dạng ngày/tháng/năm
-            const parts = date.split(/[/ :]/); // Tách bằng '/' và ':'
-            // Kiểm tra số phần đã tách
-            if (parts.length === 3) {
-                const day = parseInt(parts[0], 10); // Chỉ số 0 cho ngày
-                const month = parseInt(parts[1], 10) - 1; // Chỉ số 1 cho tháng (bắt đầu từ 0)
-                const year = parseInt(parts[2], 10); // Chỉ số 2 cho năm
+            // Try parsing standard date format first
+            const standardDate = new Date(date);
+            if (!isNaN(standardDate.getTime())) {
+                return standardDate;
+            }
+            // Try custom DD/MM/YYYY format
+            const dateRegex = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/;
+            const dateTimeRegex = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4}) (\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/;
+            const dateMatch = date.match(dateRegex);
+            const dateTimeMatch = date.match(dateTimeRegex);
+            if (dateMatch) {
+                const day = parseInt(dateMatch[1], 10);
+                const month = parseInt(dateMatch[2], 10) - 1; // Month is 0-based
+                const year = parseInt(dateMatch[3], 10);
+                // Validate ranges
+                if (month < 0 || month > 11)
+                    throw new Error(`Invalid month: ${month + 1}`);
+                if (day < 1 || day > 31)
+                    throw new Error(`Invalid day: ${day}`);
                 return new Date(year, month, day);
             }
-            else if (parts.length === 6) {
-                const day = parseInt(parts[0], 10);
-                const month = parseInt(parts[1], 10) - 1; // Tháng trong Date bắt đầu từ 0
-                const year = parseInt(parts[2], 10);
-                const hours = parseInt(parts[3], 10);
-                const minutes = parseInt(parts[4], 10);
-                const seconds = parseInt(parts[5], 10);
+            if (dateTimeMatch) {
+                const day = parseInt(dateTimeMatch[1], 10);
+                const month = parseInt(dateTimeMatch[2], 10) - 1; // Month is 0-based
+                const year = parseInt(dateTimeMatch[3], 10);
+                const hours = parseInt(dateTimeMatch[4], 10);
+                const minutes = parseInt(dateTimeMatch[5], 10);
+                const seconds = dateTimeMatch[6] ? parseInt(dateTimeMatch[6], 10) : 0;
+                // Validate ranges
+                if (month < 0 || month > 11)
+                    throw new Error(`Invalid month: ${month + 1}`);
+                if (day < 1 || day > 31)
+                    throw new Error(`Invalid day: ${day}`);
+                if (hours < 0 || hours > 23)
+                    throw new Error(`Invalid hours: ${hours}`);
+                if (minutes < 0 || minutes > 59)
+                    throw new Error(`Invalid minutes: ${minutes}`);
+                if (seconds < 0 || seconds > 59)
+                    throw new Error(`Invalid seconds: ${seconds}`);
                 return new Date(year, month, day, hours, minutes, seconds);
             }
-            else {
-                return new Date(date); // Nếu không phải định dạng mong muốn, cố gắng tạo Date từ chuỗi
+            // Additional format: DD-MM-YYYY
+            const dashDateRegex = /^(\d{1,2})-(\d{1,2})-(\d{4})$/;
+            const dashMatch = date.match(dashDateRegex);
+            if (dashMatch) {
+                const day = parseInt(dashMatch[1], 10);
+                const month = parseInt(dashMatch[2], 10) - 1;
+                const year = parseInt(dashMatch[3], 10);
+                if (month < 0 || month > 11)
+                    throw new Error(`Invalid month: ${month + 1}`);
+                if (day < 1 || day > 31)
+                    throw new Error(`Invalid day: ${day}`);
+                return new Date(year, month, day);
             }
+            // If we've gotten here, try one more standard parsing approach
+            const fallbackDate = new Date(date.replace(/-/g, "/"));
+            if (!isNaN(fallbackDate.getTime())) {
+                return fallbackDate;
+            }
+            throw new Error(`Unable to parse date from string: ${date}`);
         }
-        return date; // Nếu là đối tượng Date, trả về ngay
+        // If we get here, the input is neither a Date nor a string
+        throw new Error(`Invalid date input: ${String(date)}`);
     }
     formatDate(format, formatLanguage) {
         let newFormat = format;

@@ -1,6 +1,6 @@
 import { DateLocalizationConfig, FormatDateOptions, Language, TimeZone } from "./type";
 import useTimer from "./useTimer";
-import { animate } from "./animate";
+import { animate, timeline, stagger, spring, physics, sequence, createTransform, effects, easingFunctions } from "./animate";
 import { numbers } from "./number";
 import { random } from "./random";
 import { sortArray } from "./sort";
@@ -90,4 +90,4 @@ declare class Time {
 export declare const numberOfTime: (seconds: number, format?: "hh:mm:ss" | "mm:ss" | "ss") => string;
 export declare const anitimejs: (date?: Date | string, endDate?: Date | string) => Time;
 export declare const anitimejsGlobalConfig: typeof Time.setGlobalConfig;
-export { useTimer, animate, numbers, random, sortArray };
+export { useTimer, animate, numbers, random, sortArray, timeline, stagger, spring, physics, sequence, createTransform, effects, easingFunctions, };
