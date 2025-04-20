@@ -22,6 +22,7 @@ import { numbers } from "./number";
 import { random } from "./random";
 import { sortArray } from "./sort";
 import { createSlug, createUniqueSlug, getSlugPart, isValidSlug } from "./slug";
+import { RegexHelper } from "./regex";
 
 class Time {
   private date: Date;
@@ -664,36 +665,952 @@ class Time {
 
   public calculateWorkingDays(
     week: number[], // Mảng chứa các thứ trong tuần muốn loại bỏ (0: Chủ nhật, 1: Thứ 2, ..., 6: Thứ 7)
-    holidays: (Date | string)[] // Mảng chứa các ngày lễ muốn loại bỏ
+    holidays: (Date | string)[] // Mảng chứa các ngày lễ muốn loại bỏ, có thể ở dạng "DD/MM" hoặc "DD/MM/YYYY"
   ): { workingDays: Date[]; holidaysExcluded: Date[] } {
     const start = this.date;
     const end = this.endDate || this.date;
     const holidaysExcluded: Date[] = [];
+    const currentYear = start.getFullYear();
 
     // Chuyển đổi và lọc ngày lễ
     const holidayDates = holidays
-      .map((holiday) => new Date(holiday))
+      .map((holiday) => {
+        if (holiday instanceof Date) {
+          return holiday;
+        }
+
+        if (typeof holiday === "string") {
+          // Xử lý định dạng "DD/MM"
+          const dayMonthMatch = holiday.match(/^(\d{1,2})\/(\d{1,2})$/);
+          if (dayMonthMatch) {
+            const day = parseInt(dayMonthMatch[1], 10);
+            const month = parseInt(dayMonthMatch[2], 10) - 1; // Tháng bắt đầu từ 0
+            return new Date(currentYear, month, day);
+          }
+
+          // Xử lý các định dạng khác qua hàm parseDate hiện có
+          try {
+            return this.parseDate(holiday);
+          } catch (e) {
+            console.warn(`Không thể chuyển đổi ngày lễ: ${holiday}`);
+            return new Date(NaN); // Trả về ngày không hợp lệ
+          }
+        }
+
+        return new Date(NaN); // Trả về ngày không hợp lệ
+      })
       .filter((date) => !isNaN(date.getTime()));
 
     const workingDays: Date[] = [];
 
-    for (let date = start; date <= end; date.setDate(date.getDate() + 1)) {
-      const dayOfWeek = date.getDay();
+    // Clone start date to avoid modifying the original
+    const currentDate = new Date(start);
+
+    while (currentDate <= end) {
+      const dayOfWeek = currentDate.getDay();
 
       // Kiểm tra xem ngày hiện tại có phải là ngày nghỉ cuối tuần hoặc ngày lễ không
       const isWeekend = week.includes(dayOfWeek);
       const isHoliday = holidayDates.some(
-        (holiday) => holiday.getTime() === date.getTime()
+        (holiday) =>
+          holiday.getDate() === currentDate.getDate() &&
+          holiday.getMonth() === currentDate.getMonth()
       );
 
       if (!isWeekend && !isHoliday) {
-        workingDays.push(new Date(date)); // Thêm vào ngày làm việc
+        workingDays.push(new Date(currentDate)); // Thêm vào ngày làm việc
       } else if (isHoliday) {
-        holidaysExcluded.push(new Date(date)); // Thêm vào ngày lễ
+        holidaysExcluded.push(new Date(currentDate)); // Thêm vào ngày lễ
       }
+
+      // Tăng ngày lên 1
+      currentDate.setDate(currentDate.getDate() + 1);
     }
 
     return { workingDays, holidaysExcluded };
+  }
+
+  /**
+   * Lấy danh sách các ngày lễ theo quốc gia cho năm cụ thể
+   * @param year Năm cần lấy ngày lễ (mặc định là năm hiện tại)
+   * @param country Mã quốc gia (mặc định: 'vi' - Việt Nam)
+   * @returns Mảng các ngày lễ
+   */
+  public getHolidays(year?: number, country: Language = "vi"): Date[] {
+    const targetYear = year || this.date.getFullYear();
+
+    // Lấy danh sách ngày lễ có tên
+    const namedHolidays = this.getNamedHolidays(targetYear, country);
+
+    // Chỉ trả về phần Date
+    return namedHolidays.map((holiday) => holiday.date);
+  }
+
+  /**
+   * Lấy danh sách các ngày lễ kèm tên theo quốc gia cho năm cụ thể
+   * @param year Năm cần lấy ngày lễ (mặc định là năm hiện tại)
+   * @param country Mã quốc gia (mặc định: 'vi' - Việt Nam)
+   * @returns Mảng các ngày lễ kèm tên
+   */
+  public getNamedHolidays(
+    year?: number,
+    country: Language = "vi"
+  ): Array<{ name: string; date: Date }> {
+    const targetYear = year || this.date.getFullYear();
+
+    // Danh sách ngày lễ cố định (dương lịch) theo quốc gia
+    const fixedHolidays: Record<
+      string,
+      Array<{ name: string; day: number; month: number }>
+    > = {
+      // Việt Nam
+      vi: [
+        { name: "Tết Dương Lịch", day: 1, month: 1 },
+        { name: "Ngày Giỗ Tổ Hùng Vương", day: 10, month: 4 },
+        { name: "Ngày Giải phóng miền Nam", day: 30, month: 4 },
+        { name: "Ngày Quốc tế Lao động", day: 1, month: 5 },
+        { name: "Ngày Quốc khánh", day: 2, month: 9 },
+      ],
+
+      // Hoa Kỳ/Anh (tiếng Anh)
+      en: [
+        { name: "New Year's Day", day: 1, month: 1 },
+        { name: "Independence Day", day: 4, month: 7 },
+        { name: "Veterans Day", day: 11, month: 11 },
+        { name: "Christmas Day", day: 25, month: 12 },
+        { name: "Boxing Day", day: 26, month: 12 },
+      ],
+
+      // Nhật Bản
+      ja: [
+        { name: "New Year's Day (元日)", day: 1, month: 1 },
+        { name: "Coming of Age Day (成人の日)", day: 8, month: 1 },
+        { name: "National Foundation Day (建国記念の日)", day: 11, month: 2 },
+        { name: "Showa Day (昭和の日)", day: 29, month: 4 },
+        { name: "Constitution Memorial Day (憲法記念日)", day: 3, month: 5 },
+        { name: "Greenery Day (みどりの日)", day: 4, month: 5 },
+        { name: "Children's Day (こどもの日)", day: 5, month: 5 },
+        { name: "Marine Day (海の日)", day: 18, month: 7 },
+        { name: "Mountain Day (山の日)", day: 11, month: 8 },
+        { name: "Respect for the Aged Day (敬老の日)", day: 15, month: 9 },
+        { name: "Culture Day (文化の日)", day: 3, month: 11 },
+        { name: "Labor Thanksgiving Day (勤労感謝の日)", day: 23, month: 11 },
+        { name: "Emperor's Birthday (天皇誕生日)", day: 23, month: 2 },
+      ],
+
+      // Lào
+      lo: [
+        { name: "Pi Mai Lào (Lào New Year)", day: 14, month: 4 },
+        { name: "International Labour Day", day: 1, month: 5 },
+        { name: "National Day (ວັນຊາດ)", day: 2, month: 12 },
+        { name: "New Year's Day", day: 1, month: 1 },
+      ],
+
+      // Trung Quốc
+      zh: [
+        { name: "春节 (Tết Nguyên Đán)", day: 1, month: 1 },
+        { name: "清明节 (Thanh Minh)", day: 4, month: 4 },
+        { name: "劳动节 (Ngày Lao động)", day: 1, month: 5 },
+        { name: "国庆节 (Quốc khánh)", day: 1, month: 10 },
+        { name: "中秋节 (Tết Trung Thu)", day: 15, month: 8 },
+      ],
+
+      // Pháp
+      fr: [
+        { name: "Jour de l'an", day: 1, month: 1 },
+        { name: "Fête du Travail", day: 1, month: 5 },
+        { name: "Victoire 1945", day: 8, month: 5 },
+        { name: "Fête nationale", day: 14, month: 7 },
+        { name: "Assomption", day: 15, month: 8 },
+        { name: "Toussaint", day: 1, month: 11 },
+        { name: "Noël", day: 25, month: 12 },
+      ],
+
+      // Hàn Quốc
+      ko: [
+        { name: "New Year's Day (신정)", day: 1, month: 1 },
+        { name: "Independence Movement Day (삼일절)", day: 1, month: 3 },
+        { name: "Children's Day (어린이날)", day: 5, month: 5 },
+        { name: "Memorial Day (현충일)", day: 6, month: 6 },
+        { name: "Liberation Day (광복절)", day: 15, month: 8 },
+        { name: "National Foundation Day (개천절)", day: 3, month: 10 },
+        { name: "Hangul Day (한글날)", day: 9, month: 10 },
+        { name: "Christmas Day (크리스마스)", day: 25, month: 12 },
+      ],
+    };
+
+    // Danh sách ngày lễ âm lịch theo quốc gia
+    const lunarHolidays: Record<
+      string,
+      Array<{ name: string; day: number; month: number; durationDays?: number }>
+    > = {
+      // Việt Nam
+      vi: [
+        { name: "Tết Nguyên Đán", day: 1, month: 1, durationDays: 5 },
+        { name: "Tết Hàn Thực", day: 3, month: 3 },
+        { name: "Lễ Phật Đản", day: 15, month: 4 },
+        { name: "Tết Đoan Ngọ", day: 5, month: 5 },
+        { name: "Lễ Vu Lan", day: 15, month: 7 },
+        { name: "Tết Trung Thu", day: 15, month: 8 },
+        { name: "Tết Thường Tân", day: 10, month: 10 },
+      ],
+
+      // Trung Quốc
+      zh: [
+        { name: "春节", day: 1, month: 1, durationDays: 7 },
+        { name: "元宵节", day: 15, month: 1 },
+        { name: "清明节", day: 5, month: 4 },
+        { name: "端午节", day: 5, month: 5 },
+        { name: "中秋节", day: 15, month: 8 },
+      ],
+
+      // Hàn Quốc
+      ko: [
+        { name: "설날 (Seollal)", day: 1, month: 1, durationDays: 3 },
+        { name: "석가탄신일 (Buddha's Birthday)", day: 8, month: 4 },
+        { name: "추석 (Chuseok)", day: 15, month: 8, durationDays: 3 },
+      ],
+
+      // Lào
+      lo: [
+        {
+          name: "Boun Khao Phansa (Start of Buddhist Lent)",
+          day: 1,
+          month: 11,
+        },
+        { name: "Boun Ok Phansa (End of Buddhist Lent)", day: 15, month: 3 },
+      ],
+    };
+
+    const result: Array<{ name: string; date: Date }> = [];
+
+    // Thêm các ngày lễ dương lịch cố định
+    const countryFixedHolidays = fixedHolidays[country] || [];
+    countryFixedHolidays.forEach((holiday) => {
+      result.push({
+        name: holiday.name,
+        date: new Date(targetYear, holiday.month - 1, holiday.day),
+      });
+    });
+
+    // Thêm các ngày lễ âm lịch (chuyển sang dương lịch)
+    const countryLunarHolidays = lunarHolidays[country] || [];
+    countryLunarHolidays.forEach((holiday) => {
+      // Chuyển từ ngày âm lịch sang dương lịch
+      const solarDate = this.fromLunarDate(
+        holiday.day,
+        holiday.month,
+        targetYear
+      );
+
+      // Thêm ngày lễ chính
+      result.push({
+        name: holiday.name,
+        date: solarDate,
+      });
+
+      // Thêm các ngày nghỉ bổ sung nếu có
+      if (holiday.durationDays && holiday.durationDays > 1) {
+        for (let i = 1; i < holiday.durationDays; i++) {
+          const nextDate = new Date(solarDate);
+          nextDate.setDate(solarDate.getDate() + i);
+
+          result.push({
+            name: `${holiday.name} (ngày ${i + 1})`,
+            date: nextDate,
+          });
+        }
+      }
+    });
+
+    return result;
+  }
+
+  /**
+   * Chuyển đổi từ ngày dương lịch sang ngày âm lịch
+   * @param date Ngày dương lịch (nếu không cung cấp, sử dụng this.date)
+   * @returns Đối tượng chứa thông tin ngày âm lịch
+   */
+  public toLunarDate(date?: Date): {
+    day: number;
+    month: number;
+    year: number;
+    leap: boolean; // Tháng nhuận hay không
+    dateString: string; // Ngày âm lịch dạng chuỗi "DD/MM/YYYY"
+  } {
+    const targetDate = date || this.date;
+
+    // Bảng dữ liệu lịch âm từ 1900-2100
+    // Mỗi số trong mảng đại diện cho thông tin về một năm âm lịch
+    // Bit 0-4: Tháng nhuận trong năm (0 nếu không có tháng nhuận)
+    // Bit 5-16: Lưu thông tin về độ dài của các tháng (0: 29 ngày, 1: 30 ngày)
+    // Bit 17-20: Đại diện cho năm nhuận (thường dùng bit 17 để kiểm tra)
+    const lunarInfo = [
+      0x04bd8,
+      0x04ae0,
+      0x0a570,
+      0x054d5,
+      0x0d260,
+      0x0d950,
+      0x16554,
+      0x056a0,
+      0x09ad0,
+      0x055d2, // 1900-1909
+      0x04ae0,
+      0x0a5b6,
+      0x0a4d0,
+      0x0d250,
+      0x1d255,
+      0x0b540,
+      0x0d6a0,
+      0x0ada2,
+      0x095b0,
+      0x14977, // 1910-1919
+      0x04970,
+      0x0a4b0,
+      0x0b4b5,
+      0x06a50,
+      0x06d40,
+      0x1ab54,
+      0x02b60,
+      0x09570,
+      0x052f2,
+      0x04970, // 1920-1929
+      0x06566,
+      0x0d4a0,
+      0x0ea50,
+      0x06e95,
+      0x05ad0,
+      0x02b60,
+      0x186e3,
+      0x092e0,
+      0x1c8d7,
+      0x0c950, // 1930-1939
+      0x0d4a0,
+      0x1d8a6,
+      0x0b550,
+      0x056a0,
+      0x1a5b4,
+      0x025d0,
+      0x092d0,
+      0x0d2b2,
+      0x0a950,
+      0x0b557, // 1940-1949
+      0x06ca0,
+      0x0b550,
+      0x15355,
+      0x04da0,
+      0x0a5b0,
+      0x14573,
+      0x052b0,
+      0x0a9a8,
+      0x0e950,
+      0x06aa0, // 1950-1959
+      0x0aea6,
+      0x0ab50,
+      0x04b60,
+      0x0aae4,
+      0x0a570,
+      0x05260,
+      0x0f263,
+      0x0d950,
+      0x05b57,
+      0x056a0, // 1960-1969
+      0x096d0,
+      0x04dd5,
+      0x04ad0,
+      0x0a4d0,
+      0x0d4d4,
+      0x0d250,
+      0x0d558,
+      0x0b540,
+      0x0b6a0,
+      0x195a6, // 1970-1979
+      0x095b0,
+      0x049b0,
+      0x0a974,
+      0x0a4b0,
+      0x0b27a,
+      0x06a50,
+      0x06d40,
+      0x0af46,
+      0x0ab60,
+      0x09570, // 1980-1989
+      0x04af5,
+      0x04970,
+      0x064b0,
+      0x074a3,
+      0x0ea50,
+      0x06b58,
+      0x055c0,
+      0x0ab60,
+      0x096d5,
+      0x092e0, // 1990-1999
+      0x0c960,
+      0x0d954,
+      0x0d4a0,
+      0x0da50,
+      0x07552,
+      0x056a0,
+      0x0abb7,
+      0x025d0,
+      0x092d0,
+      0x0cab5, // 2000-2009
+      0x0a950,
+      0x0b4a0,
+      0x0baa4,
+      0x0ad50,
+      0x055d9,
+      0x04ba0,
+      0x0a5b0,
+      0x15176,
+      0x052b0,
+      0x0a930, // 2010-2019
+      0x07954,
+      0x06aa0,
+      0x0ad50,
+      0x05b52,
+      0x04b60,
+      0x0a6e6,
+      0x0a4e0,
+      0x0d260,
+      0x0ea65,
+      0x0d530, // 2020-2029
+      0x05aa0,
+      0x076a3,
+      0x096d0,
+      0x04afb,
+      0x04ad0,
+      0x0a4d0,
+      0x1d0b6,
+      0x0d250,
+      0x0d520,
+      0x0dd45, // 2030-2039
+      0x0b5a0,
+      0x056d0,
+      0x055b2,
+      0x049b0,
+      0x0a577,
+      0x0a4b0,
+      0x0aa50,
+      0x1b255,
+      0x06d20,
+      0x0ada0, // 2040-2049
+      0x14b63,
+      0x09370,
+      0x049f8,
+      0x04970,
+      0x064b0,
+      0x168a6,
+      0x0ea50,
+      0x06b20,
+      0x1a6c4,
+      0x0aae0, // 2050-2059
+      0x0a2e0,
+      0x0d2e3,
+      0x0c960,
+      0x0d557,
+      0x0d4a0,
+      0x0da50,
+      0x05d55,
+      0x056a0,
+      0x0a6d0,
+      0x055d4, // 2060-2069
+      0x052d0,
+      0x0a9b8,
+      0x0a950,
+      0x0b4a0,
+      0x0b6a6,
+      0x0ad50,
+      0x055a0,
+      0x0aba4,
+      0x0a5b0,
+      0x052b0, // 2070-2079
+      0x0b273,
+      0x06930,
+      0x07337,
+      0x06aa0,
+      0x0ad50,
+      0x14b55,
+      0x04b60,
+      0x0a570,
+      0x054e4,
+      0x0d160, // 2080-2089
+      0x0e968,
+      0x0d520,
+      0x0daa0,
+      0x16aa6,
+      0x056d0,
+      0x04ae0,
+      0x0a9d4,
+      0x0a2d0,
+      0x0d150,
+      0x0f252, // 2090-2099
+      0x0d520, // 2100
+    ];
+
+    // Tính ngày Julius
+    const baseDate = new Date(1900, 0, 31); // 31/01/1900
+    let offset = Math.floor(
+      (targetDate.getTime() - baseDate.getTime()) / 86400000
+    );
+
+    // Tìm năm âm lịch
+    let i,
+      temp = 0,
+      leap;
+    for (i = 1900; i < 2101 && offset > 0; i++) {
+      temp = this.getLunarYearDays(i, lunarInfo);
+      offset -= temp;
+    }
+
+    if (offset < 0) {
+      offset += temp;
+      i--;
+    }
+
+    const year = i;
+
+    // Tìm tháng âm lịch
+    leap = this.getLunarLeapMonth(year, lunarInfo);
+    let isLeap = false;
+
+    for (i = 1; i < 13 && offset > 0; i++) {
+      // Kiểm tra tháng nhuận
+      if (leap > 0 && i === leap + 1 && isLeap === false) {
+        --i;
+        isLeap = true;
+        temp = this.getLunarLeapDays(year, lunarInfo);
+      } else {
+        temp = this.getLunarMonthDays(year, i, lunarInfo);
+      }
+
+      // Nếu là tháng nhuận, khi tính xong thì đánh dấu là kết thúc tháng nhuận
+      if (isLeap === true && i === leap + 1) {
+        isLeap = false;
+      }
+
+      offset -= temp;
+    }
+
+    // Nếu offset = 0 và đang ở tháng nhuận, cần điều chỉnh
+    if (offset === 0 && leap > 0 && i === leap + 1) {
+      if (isLeap) {
+        isLeap = false;
+      } else {
+        isLeap = true;
+        --i;
+      }
+    }
+
+    // Nếu offset < 0, trừ về tháng trước
+    if (offset < 0) {
+      offset += temp;
+      --i;
+    }
+
+    const month = i;
+    const day = offset + 1;
+
+    return {
+      day,
+      month,
+      year,
+      leap: isLeap,
+      dateString: `${day}/${month}/${year}${isLeap ? " (nhuận)" : ""}`,
+    };
+  }
+
+  /**
+   * Chuyển đổi từ ngày âm lịch sang ngày dương lịch
+   * @param lunarDay Ngày âm lịch
+   * @param lunarMonth Tháng âm lịch
+   * @param lunarYear Năm âm lịch
+   * @param isLeapMonth Có phải tháng nhuận không
+   * @returns Ngày dương lịch tương ứng
+   */
+  public fromLunarDate(
+    lunarDay: number,
+    lunarMonth: number,
+    lunarYear: number,
+    isLeapMonth: boolean = false
+  ): Date {
+    // Kiểm tra tính hợp lệ của ngày tháng năm
+    if (lunarMonth < 1 || lunarMonth > 12) {
+      throw new Error("Tháng âm lịch phải từ 1 đến 12");
+    }
+
+    // Bảng dữ liệu lịch âm
+    const lunarInfo = [
+      0x04bd8,
+      0x04ae0,
+      0x0a570,
+      0x054d5,
+      0x0d260,
+      0x0d950,
+      0x16554,
+      0x056a0,
+      0x09ad0,
+      0x055d2, // 1900-1909
+      0x04ae0,
+      0x0a5b6,
+      0x0a4d0,
+      0x0d250,
+      0x1d255,
+      0x0b540,
+      0x0d6a0,
+      0x0ada2,
+      0x095b0,
+      0x14977, // 1910-1919
+      0x04970,
+      0x0a4b0,
+      0x0b4b5,
+      0x06a50,
+      0x06d40,
+      0x1ab54,
+      0x02b60,
+      0x09570,
+      0x052f2,
+      0x04970, // 1920-1929
+      0x06566,
+      0x0d4a0,
+      0x0ea50,
+      0x06e95,
+      0x05ad0,
+      0x02b60,
+      0x186e3,
+      0x092e0,
+      0x1c8d7,
+      0x0c950, // 1930-1939
+      0x0d4a0,
+      0x1d8a6,
+      0x0b550,
+      0x056a0,
+      0x1a5b4,
+      0x025d0,
+      0x092d0,
+      0x0d2b2,
+      0x0a950,
+      0x0b557, // 1940-1949
+      0x06ca0,
+      0x0b550,
+      0x15355,
+      0x04da0,
+      0x0a5b0,
+      0x14573,
+      0x052b0,
+      0x0a9a8,
+      0x0e950,
+      0x06aa0, // 1950-1959
+      0x0aea6,
+      0x0ab50,
+      0x04b60,
+      0x0aae4,
+      0x0a570,
+      0x05260,
+      0x0f263,
+      0x0d950,
+      0x05b57,
+      0x056a0, // 1960-1969
+      0x096d0,
+      0x04dd5,
+      0x04ad0,
+      0x0a4d0,
+      0x0d4d4,
+      0x0d250,
+      0x0d558,
+      0x0b540,
+      0x0b6a0,
+      0x195a6, // 1970-1979
+      0x095b0,
+      0x049b0,
+      0x0a974,
+      0x0a4b0,
+      0x0b27a,
+      0x06a50,
+      0x06d40,
+      0x0af46,
+      0x0ab60,
+      0x09570, // 1980-1989
+      0x04af5,
+      0x04970,
+      0x064b0,
+      0x074a3,
+      0x0ea50,
+      0x06b58,
+      0x055c0,
+      0x0ab60,
+      0x096d5,
+      0x092e0, // 1990-1999
+      0x0c960,
+      0x0d954,
+      0x0d4a0,
+      0x0da50,
+      0x07552,
+      0x056a0,
+      0x0abb7,
+      0x025d0,
+      0x092d0,
+      0x0cab5, // 2000-2009
+      0x0a950,
+      0x0b4a0,
+      0x0baa4,
+      0x0ad50,
+      0x055d9,
+      0x04ba0,
+      0x0a5b0,
+      0x15176,
+      0x052b0,
+      0x0a930, // 2010-2019
+      0x07954,
+      0x06aa0,
+      0x0ad50,
+      0x05b52,
+      0x04b60,
+      0x0a6e6,
+      0x0a4e0,
+      0x0d260,
+      0x0ea65,
+      0x0d530, // 2020-2029
+      0x05aa0,
+      0x076a3,
+      0x096d0,
+      0x04afb,
+      0x04ad0,
+      0x0a4d0,
+      0x1d0b6,
+      0x0d250,
+      0x0d520,
+      0x0dd45, // 2030-2039
+      0x0b5a0,
+      0x056d0,
+      0x055b2,
+      0x049b0,
+      0x0a577,
+      0x0a4b0,
+      0x0aa50,
+      0x1b255,
+      0x06d20,
+      0x0ada0, // 2040-2049
+      0x14b63,
+      0x09370,
+      0x049f8,
+      0x04970,
+      0x064b0,
+      0x168a6,
+      0x0ea50,
+      0x06b20,
+      0x1a6c4,
+      0x0aae0, // 2050-2059
+      0x0a2e0,
+      0x0d2e3,
+      0x0c960,
+      0x0d557,
+      0x0d4a0,
+      0x0da50,
+      0x05d55,
+      0x056a0,
+      0x0a6d0,
+      0x055d4, // 2060-2069
+      0x052d0,
+      0x0a9b8,
+      0x0a950,
+      0x0b4a0,
+      0x0b6a6,
+      0x0ad50,
+      0x055a0,
+      0x0aba4,
+      0x0a5b0,
+      0x052b0, // 2070-2079
+      0x0b273,
+      0x06930,
+      0x07337,
+      0x06aa0,
+      0x0ad50,
+      0x14b55,
+      0x04b60,
+      0x0a570,
+      0x054e4,
+      0x0d160, // 2080-2089
+      0x0e968,
+      0x0d520,
+      0x0daa0,
+      0x16aa6,
+      0x056d0,
+      0x04ae0,
+      0x0a9d4,
+      0x0a2d0,
+      0x0d150,
+      0x0f252, // 2090-2099
+      0x0d520, // 2100
+    ];
+
+    // Kiểm tra giới hạn ngày
+    const maxDays = isLeapMonth
+      ? this.getLunarLeapDays(lunarYear, lunarInfo)
+      : this.getLunarMonthDays(lunarYear, lunarMonth, lunarInfo);
+
+    if (lunarDay < 1 || lunarDay > maxDays) {
+      throw new Error(
+        `Ngày âm lịch phải từ 1 đến ${maxDays} đối với ${lunarMonth}/${lunarYear}${
+          isLeapMonth ? " (nhuận)" : ""
+        }`
+      );
+    }
+
+    if (lunarYear < 1900 || lunarYear > 2100) {
+      throw new Error("Năm âm lịch phải từ 1900 đến 2100");
+    }
+
+    // Tính tổng số ngày từ 1900/1/1 âm lịch
+    let offset = 0;
+
+    // Tính tổng số ngày các năm trước
+    for (let i = 1900; i < lunarYear; i++) {
+      offset += this.getLunarYearDays(i, lunarInfo);
+    }
+
+    // Tháng nhuận của năm hiện tại
+    const leapMonth = this.getLunarLeapMonth(lunarYear, lunarInfo);
+
+    // Xử lý tháng nhuận
+    if (isLeapMonth && leapMonth !== lunarMonth) {
+      throw new Error(`Năm ${lunarYear} không có tháng ${lunarMonth} nhuận`);
+    }
+
+    // Cộng số ngày của các tháng trước trong năm
+    for (let i = 1; i < lunarMonth; i++) {
+      // Cộng số ngày của tháng thường
+      offset += this.getLunarMonthDays(lunarYear, i, lunarInfo);
+
+      // Nếu có tháng nhuận trước tháng hiện tại, cộng thêm số ngày
+      if (leapMonth > 0 && i === leapMonth) {
+        offset += this.getLunarLeapDays(lunarYear, lunarInfo);
+      }
+    }
+
+    // Nếu là tháng nhuận, cộng thêm số ngày của tháng thường cùng số
+    if (isLeapMonth) {
+      offset += this.getLunarMonthDays(lunarYear, lunarMonth, lunarInfo);
+    }
+
+    // Cộng số ngày trong tháng hiện tại
+    offset += lunarDay - 1;
+
+    // Tính ngày dương lịch tương ứng (từ ngày 31/1/1900)
+    const baseDate = new Date(1900, 0, 31);
+    const result = new Date(baseDate);
+    result.setDate(baseDate.getDate() + offset);
+
+    return result;
+  }
+
+  /**
+   * Chuyển đổi một khoảng thời gian từ dương lịch sang âm lịch
+   * @returns Mảng các ngày âm lịch trong khoảng từ this.date đến this.endDate
+   */
+  public toLunarDateRange(): Array<{
+    solar: Date; // Ngày dương lịch
+    lunar: {
+      day: number;
+      month: number;
+      year: number;
+      leap: boolean;
+      dateString: string;
+    }; // Thông tin ngày âm lịch
+  }> {
+    if (!this.endDate) {
+      throw new Error(
+        "EndDate không được xác định. Vui lòng thiết lập endDate trước khi gọi toLunarDateRange."
+      );
+    }
+
+    const result = [];
+    const currentDate = new Date(this.date);
+
+    // Tạo bản sao để không ảnh hưởng đến this.date gốc
+    while (currentDate <= this.endDate) {
+      const lunarDate = this.toLunarDate(new Date(currentDate));
+      result.push({
+        solar: new Date(currentDate), // Tạo bản sao để tránh tham chiếu
+        lunar: lunarDate,
+      });
+
+      // Tăng ngày lên 1
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return result;
+  }
+
+  /**
+   * Lấy thông tin về tháng nhuận trong năm âm lịch
+   * @param lunarYear Năm âm lịch
+   * @param lunarInfo Bảng dữ liệu lịch âm
+   * @returns Số thứ tự của tháng nhuận (1-12), 0 nếu không có tháng nhuận
+   */
+  private getLunarLeapMonth(lunarYear: number, lunarInfo: number[]): number {
+    const yearCode = lunarInfo[lunarYear - 1900];
+    return yearCode & 0xf; // Lấy 4 bit cuối để xác định tháng nhuận
+  }
+
+  /**
+   * Lấy số ngày của tháng nhuận trong năm âm lịch
+   * @param lunarYear Năm âm lịch
+   * @param lunarInfo Bảng dữ liệu lịch âm
+   * @returns Số ngày của tháng nhuận (29 hoặc 30)
+   */
+  private getLunarLeapDays(lunarYear: number, lunarInfo: number[]): number {
+    const leapMonth = this.getLunarLeapMonth(lunarYear, lunarInfo);
+    if (leapMonth === 0) {
+      return 0;
+    }
+
+    const yearCode = lunarInfo[lunarYear - 1900];
+    // Bit thứ 16 (0x10000) xác định tháng nhuận có 30 ngày (1) hay 29 ngày (0)
+    return yearCode & 0x10000 ? 30 : 29;
+  }
+
+  /**
+   * Lấy số ngày của một tháng âm lịch thường
+   * @param lunarYear Năm âm lịch
+   * @param lunarMonth Tháng âm lịch
+   * @param lunarInfo Bảng dữ liệu lịch âm
+   * @returns Số ngày của tháng (29 hoặc 30)
+   */
+  private getLunarMonthDays(
+    lunarYear: number,
+    lunarMonth: number,
+    lunarInfo: number[]
+  ): number {
+    const yearCode = lunarInfo[lunarYear - 1900];
+    // Bit tương ứng với tháng xác định số ngày là 30 (1) hay 29 (0)
+    // Bit 4-15 tương ứng với các tháng từ 12 đến 1
+    const bitPosition = 0x10000 >> lunarMonth;
+    return yearCode & bitPosition ? 30 : 29;
+  }
+
+  /**
+   * Lấy tổng số ngày trong năm âm lịch
+   * @param lunarYear Năm âm lịch
+   * @param lunarInfo Bảng dữ liệu lịch âm
+   * @returns Tổng số ngày trong năm
+   */
+  private getLunarYearDays(lunarYear: number, lunarInfo: number[]): number {
+    let totalDays = 0;
+    const leapMonth = this.getLunarLeapMonth(lunarYear, lunarInfo);
+
+    // Tính số ngày của 12 tháng thường
+    for (let i = 1; i <= 12; i++) {
+      totalDays += this.getLunarMonthDays(lunarYear, i, lunarInfo);
+    }
+
+    // Cộng thêm số ngày của tháng nhuận (nếu có)
+    if (leapMonth > 0) {
+      totalDays += this.getLunarLeapDays(lunarYear, lunarInfo);
+    }
+
+    return totalDays;
   }
 
   public getMonthStartEndDates(): { startDate: Date; endDate: Date } {
@@ -902,5 +1819,6 @@ export {
   createSlug,
   createUniqueSlug,
   getSlugPart,
-  isValidSlug
+  isValidSlug,
+  RegexHelper,
 };

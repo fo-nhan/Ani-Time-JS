@@ -5,6 +5,7 @@ import { numbers } from "./number";
 import { random } from "./random";
 import { sortArray } from "./sort";
 import { createSlug, createUniqueSlug, getSlugPart, isValidSlug } from "./slug";
+import { RegexHelper } from "./regex";
 declare class Time {
     private date;
     private endDate;
@@ -71,6 +72,87 @@ declare class Time {
         workingDays: Date[];
         holidaysExcluded: Date[];
     };
+    /**
+     * Lấy danh sách các ngày lễ theo quốc gia cho năm cụ thể
+     * @param year Năm cần lấy ngày lễ (mặc định là năm hiện tại)
+     * @param country Mã quốc gia (mặc định: 'vi' - Việt Nam)
+     * @returns Mảng các ngày lễ
+     */
+    getHolidays(year?: number, country?: Language): Date[];
+    /**
+     * Lấy danh sách các ngày lễ kèm tên theo quốc gia cho năm cụ thể
+     * @param year Năm cần lấy ngày lễ (mặc định là năm hiện tại)
+     * @param country Mã quốc gia (mặc định: 'vi' - Việt Nam)
+     * @returns Mảng các ngày lễ kèm tên
+     */
+    getNamedHolidays(year?: number, country?: Language): Array<{
+        name: string;
+        date: Date;
+    }>;
+    /**
+     * Chuyển đổi từ ngày dương lịch sang ngày âm lịch
+     * @param date Ngày dương lịch (nếu không cung cấp, sử dụng this.date)
+     * @returns Đối tượng chứa thông tin ngày âm lịch
+     */
+    toLunarDate(date?: Date): {
+        day: number;
+        month: number;
+        year: number;
+        leap: boolean;
+        dateString: string;
+    };
+    /**
+     * Chuyển đổi từ ngày âm lịch sang ngày dương lịch
+     * @param lunarDay Ngày âm lịch
+     * @param lunarMonth Tháng âm lịch
+     * @param lunarYear Năm âm lịch
+     * @param isLeapMonth Có phải tháng nhuận không
+     * @returns Ngày dương lịch tương ứng
+     */
+    fromLunarDate(lunarDay: number, lunarMonth: number, lunarYear: number, isLeapMonth?: boolean): Date;
+    /**
+     * Chuyển đổi một khoảng thời gian từ dương lịch sang âm lịch
+     * @returns Mảng các ngày âm lịch trong khoảng từ this.date đến this.endDate
+     */
+    toLunarDateRange(): Array<{
+        solar: Date;
+        lunar: {
+            day: number;
+            month: number;
+            year: number;
+            leap: boolean;
+            dateString: string;
+        };
+    }>;
+    /**
+     * Lấy thông tin về tháng nhuận trong năm âm lịch
+     * @param lunarYear Năm âm lịch
+     * @param lunarInfo Bảng dữ liệu lịch âm
+     * @returns Số thứ tự của tháng nhuận (1-12), 0 nếu không có tháng nhuận
+     */
+    private getLunarLeapMonth;
+    /**
+     * Lấy số ngày của tháng nhuận trong năm âm lịch
+     * @param lunarYear Năm âm lịch
+     * @param lunarInfo Bảng dữ liệu lịch âm
+     * @returns Số ngày của tháng nhuận (29 hoặc 30)
+     */
+    private getLunarLeapDays;
+    /**
+     * Lấy số ngày của một tháng âm lịch thường
+     * @param lunarYear Năm âm lịch
+     * @param lunarMonth Tháng âm lịch
+     * @param lunarInfo Bảng dữ liệu lịch âm
+     * @returns Số ngày của tháng (29 hoặc 30)
+     */
+    private getLunarMonthDays;
+    /**
+     * Lấy tổng số ngày trong năm âm lịch
+     * @param lunarYear Năm âm lịch
+     * @param lunarInfo Bảng dữ liệu lịch âm
+     * @returns Tổng số ngày trong năm
+     */
+    private getLunarYearDays;
     getMonthStartEndDates(): {
         startDate: Date;
         endDate: Date;
@@ -91,4 +173,4 @@ declare class Time {
 export declare const numberOfTime: (seconds: number, format?: "hh:mm:ss" | "mm:ss" | "ss") => string;
 export declare const anitimejs: (date?: Date | string, endDate?: Date | string) => Time;
 export declare const anitimejsGlobalConfig: typeof Time.setGlobalConfig;
-export { useTimer, animate, numbers, random, sortArray, timeline, stagger, spring, physics, sequence, createTransform, effects, easingFunctions, createSlug, createUniqueSlug, getSlugPart, isValidSlug };
+export { useTimer, animate, numbers, random, sortArray, timeline, stagger, spring, physics, sequence, createTransform, effects, easingFunctions, createSlug, createUniqueSlug, getSlugPart, isValidSlug, RegexHelper, };
